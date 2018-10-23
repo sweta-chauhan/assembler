@@ -22,6 +22,7 @@ error_table=["Invalid No of argument",#0
              "Only integer are allowed",#18
              "Invalid Expression",#19
              "expression syntax error"#20
+             "Invalid no of argument for macro {}"#21
 ]
 
 undefined_label=[]

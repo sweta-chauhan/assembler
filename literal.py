@@ -22,3 +22,9 @@ def find_index(real_value):
         if i.rl_value == real_value:
             return i.f_line
     return -1
+def print_literal_table():
+    print("**********************************************************************Literal Table**************************************************".center(50))
+    print("Index".ljust(10),"Real Value".ljust(70),"Hex Value".ljust(90))
+    for i in Literal_Table:
+        print(str(i.f_line).ljust(10),str(i.rl_value).ljust(70),(i.hex_value).ljust(90))
+        

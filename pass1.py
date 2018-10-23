@@ -9,6 +9,7 @@ import opcode_table as ot
 import isValid_token as ist
 import tokenizer as t
 import struct_to_file as stf
+instructions={}
 
 def intermiddiate(filename):
     if(len(et.error)==0):

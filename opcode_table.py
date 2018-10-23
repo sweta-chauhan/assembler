@@ -1,8 +1,9 @@
+
 label_specifier={"jmp","jz","je","jle","jnz","loop","call"}
 directives  ={"section",".data",".bss",".text"}
 mem_specifier={"dword"}
 data_types={"db":1,"dd":4,"dw":2,"equ":1,"resb":1,"resw":2,"resd":4}
-
+macro_specifier=["%macro","%endmacro"]
 operand_count={
     "pusha":0,
     "popa":0,
@@ -15,6 +16,7 @@ operand_count={
     "jnz":1,
     "jle":1,
     "jge":1,
+    "int":1,
     "global":1,
     "loop":1,
     "dec":1,
@@ -26,9 +28,9 @@ operand_count={
     "div":2,
     "xor":2}
 
-zero_operand_opcode={"pusha":"","popa":""}
-one_operand_opcode={"inc":"","dec":"",}
-two_operand_opcode={"add":"","sub":"","div":"","mov":"","mul":"","xor":""}
+zero_operand_opcode={"pusha":"","popa":""}#Remain 
+one_operand_opcode={"inc":"","dec":"","int":'CD'}#Remain
+two_operand_opcode={"add":"","sub":"","div":"","mov":"","mul":"","xor":""}#Remain
 def is_operator(token):
     if token in operand_count:
         return True
@@ -111,5 +113,5 @@ def find_regis_opcode(token):#find opcode of register
         return None
 
 #print(is_label_specifier("jmp"))
-print(find_Intermiddiate("hello"))
-print(find_Intermiddiate("eax"))
+#print(find_Intermiddiate("hello"))
+#print(find_Intermiddiate("eax"))

@@ -61,3 +61,10 @@ def put_label_is_defined(token,line_no):
             sym.address = line_no
             return 1
     return 0
+
+def print_symbol_table():
+    print("**********************************************************************Symbol Table**************************************************".center(50))
+    print("Index".ljust(20),"Section".ljust(20),"Name".ljust(20),"Size".ljust(20),"No_Of_Element".ljust(20),"IsDefined".ljust(10),"d_type".ljust(10),"Type".ljust(10),"Value".ljust(10),"Address".ljust(10))
+    for i in symbol_table:
+        print(str(i.line).ljust(20),(i.section).ljust(20),(i.name).ljust(20),str(i.size).ljust(20),str(i.no_of_element).ljust(20),str(i.IsDefined).ljust(10),str(i.d_type).ljust(10),str(i.Type).ljust(10),str(i.value).ljust(10),str(i.address).ljust(10))
+

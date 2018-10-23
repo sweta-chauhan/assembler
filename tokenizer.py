@@ -7,7 +7,6 @@ def fileToToken(line,data_types,list_of_Token):
             while(line[i]!='\n'):
                 i+=1
         elif(line[i]!=' 'and  line[i]!=','):
-            #print(line[i])
             token+=line[i]
             i+=1
             if(line[i]==':'):
