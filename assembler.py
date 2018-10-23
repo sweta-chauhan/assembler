@@ -651,7 +651,7 @@ if __name__ == "__main__":
                     fp = open(sys.argv[1],"r")
                     if (fp):
                         parse_it(fp)
-                    if(len(syz))
+                        p1.intermiddiate(sys.argv[1])
                 except:
                     print("Error: file not found !!")
         else:
