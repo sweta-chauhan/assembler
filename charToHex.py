@@ -4,7 +4,6 @@ def int_to_hex(string,d_flag):
     int_eq = 0
     l = ""
     if(d_flag=='db'):
-        #print(string)
         string = string.split(",")
         if string[0][0]=="\"":
             for i in string[0]:
@@ -33,13 +32,8 @@ def int_to_hex(string,d_flag):
     if(d_flag =='dd'):
         string = string.split(",")
         for i in string:
-            l=hex(int(i)).strip('0x')
-            if l =='':
-                l='00'
-            if(len(l)==1):
-                l='0'+l
-            for i in range(8-len(l)):
-                l+='0'
+            l=hex(int(i))#.strip('0x')
+            l=l[2:]
             str1+=l
             l=""
     if(d_flag == 'dw'):
@@ -98,3 +92,5 @@ def int_to_hex(string,d_flag):
     
     return str1
 
+#print(int_to_hex('10','dd'))
+#print(int_to_hex('100','dd'))

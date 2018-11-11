@@ -36,3 +36,11 @@ def fileToToken(line,data_types,list_of_Token):
     list_of_Token=[x for x in list_of_Token if len(x)!=0]
     #print(list_of_Token)
     return list_of_Token
+
+def token(line):
+    return ((line.strip('\t')).strip('\n')).split(' ')
+
+def opcodeReader(line):
+    return ((line.strip('\t')).strip('\n')).split('|')
+#print(token('\tmov r32_0 r32_1'))
+#print(opcodeReader('B8+rd id|mov|r32|imm32'))

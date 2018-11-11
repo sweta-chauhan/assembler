@@ -28,3 +28,26 @@ def print_literal_table():
     for i in Literal_Table:
         print(str(i.f_line).ljust(10),str(i.rl_value).ljust(70),(i.hex_value).ljust(90))
         
+def literal_to_file():
+    fp = open(".lit","w")
+    for i in Literal_Table:
+        fp.write(str(i.f_line)+"|"+str(i.rl_value)+"|"+i.hex_value+'\n')
+
+def handle():
+    fp = open(".lit","r")
+    file_to_symbol(fp)
+
+def file_to_symbol(fp):
+    lines = fp.readlines()
+    for line in lines:
+        lt=Literal_info()
+        line = line.split('|')
+        lt.f_line=int(line[0])
+        lt.rl_value=(line[1])
+        lt.hex_value = (line[2])
+        Literal_Table.append(lt)
+    
+'''if __name__=="__main__":
+    handle()
+    print_literal_table()
+'''

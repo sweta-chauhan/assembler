@@ -1,4 +1,4 @@
-#error were not handled in this pass all macro definetion are considered to be error free basic operator and operand combination like no of argument were checked
+#error were not handled in this pass all macro definetion are considered to be error free basic operator and operand combination like no of argument were checked and only 2 argument length pacro will be parsed
 import sys
 import re
 import opcode_table as ot
@@ -14,7 +14,7 @@ class macro_definetion():
         self.code=[]
 
 macro_definetion_table=[]
-#mac_expan=[]
+macro_expan=[]
 def macro_definition(lines,index):
     m_d_t =  macro_definetion()
     m_d_t.index = index
@@ -22,7 +22,7 @@ def macro_definition(lines,index):
         if "%macro" in line:
             line=line.split(' ')
             m_d_t.name = line[1]
-            m_d_t.no_of_args = int(line[2])
+            m_d_t.no_of_arg = int(line[2])
         else:
             m_d_t.code.append(line)
     macro_definetion_table.append(m_d_t)
@@ -42,45 +42,40 @@ def search_index(macro):
         if i.name == macro:
             return i.index
     return -1
-'''def find_no_of_argument(macro):
-    for i in macro_definetion_table:
-        if i.name == macro:
-            return i.no_of_args
-    return -1
-def expend(fd,line,line_no):
-    m_e=mac_expansion()
-    inst=[]
-    ind=1-
-    if search_macro_in_mdt(line[0]) and len(line)-1 == find_no_of_argument(line[0]):
-        for i in macro_definetion_table:
-            if(i.name==line[0]):
-                for j in i.code:
-                    if(bool(re.match(r'^%[1-9]',j[2]))):
-                        inst=j
-                        inst[2]=j[ind]
-                        ind+=1
-                        fd.write('\t')
-                        stf.listTofile(fd,j)
-                    else:
-                        fd.write('\t')
-                        stf.listTofile(fd,j)
-def end_of_mac(fd,):
-'''    
-def pass0(filename):
-    fd = open(filename,"r")
-    fd1 = open("pass0","w")
+def put_expan(fd1,ind,token,index_of_arg,code_flag):
+    for i in macro_definetion_table[ind].code:
+        if '%' in i:
+            macro_expan.append(code_flag)
+            code_flag+=1
+        else:
+            code_flag+=1
+    for i,k in enumerate(token[1:]):
+        code1 = macro_definetion_table[ind].code[macro_expan[i]]
+        index_of_arg+=1
+        #print(token[1:],k,code1.replace("%"+str(index_of_arg),k))
+        fd1.write(code1.replace("%"+str(index_of_arg),k))
+        #print(code1.replace("%"+str(index_of_arg),k))
+    return code_flag
+def pass0(fd):
+    fd1 = open(".pass0","w")
+    #fd = open(filname,"r")
     lines = fd.readlines()
     startofmacro=[]
     endofmacro=[]
     code = []
+    d_c = []
+    b_c = []
     err = et.Error()
     text_flag = 0
     main_index = 0
+    data_index = 0
     token = []
     count=0
     ind = 0
     index_of_arg=0
     for i,line in enumerate(lines):
+        if ".data" in line:
+            data_index = i
         if ".text" in line:
             text_flag = 1
             main_index = i
@@ -90,43 +85,62 @@ def pass0(filename):
             if "%endmacro" in line:
                 endofmacro.append(i)
         code.append(line)
+
     for j in range(len(startofmacro)):
         macro_definition(code[startofmacro[j]:endofmacro[j]],count)
         count+=1
+    while(main_index>data_index):
+        fd1.write(code[data_index])
+        data_index+=1
     for code1 in code[main_index:]:
         token=t.fileToToken(code1,ot.data_types,token)
-        print(token)
-        if(len(token)==3 and token[0][-1]==':'):
-            if(search_macro_in_mdt(token[1])):
-                ind = search_index(token[1])
-                if(len(token[1:])-1 == macro_definetion_table[ind].no_of_arg):
-                    index_of_arg =0
-                    for k in token[2:]:
-                        for i in macro_definetion_table[ind].code:
-                            index_of_arg = index_of_arg+1
-                            print(i.replace("%"+str(index_of_arg),k))
-                        #print(i)
-        elif(search_macro_in_mdt(token[0])):
-             ind = search_index(token[1])
-             if(len(token[1:])-1 == macro_definetion_table[ind].no_of_arg):
-                 index_of_arg = 0
-                 for k in token[2:]:
-                     index_of_arg = index_of_arg+1
-                     for i in macro_definetion_table[ind].code:
-                         i.replace("%"+str(index_of_arg),k)
-                         print(i.replace("%"+str(index_of_arg),k))
-                         #print(i)
-        else:
-            print(code1)
-        token=[]
+        if(len(token)>0):
+            if(len(token)==4 and token[0][-1]==':'):
+                
+                if(search_macro_in_mdt(token[1])):
                     
-if __name__ =="__main__":
-    pass0(sys.argv[1])
-    for i in macro_definetion_table:
-        print(i.index,i.name,i.no_of_args,i.code)
+                    ind = search_index(token[1])
+                    fd1.write(token[0])
+                    if(len(token[2:]) == macro_definetion_table[ind].no_of_arg):
+                        index_of_arg = 0
+                        cnt=0
+                        code_flag = 0
+                        #fd1.write(token[0])
+                        for i in macro_definetion_table[ind].code:
+                            if '%' in i:
+                                if(code_flag<len(macro_definetion_table[ind].code)):
+                                    code_flag=put_expan(fd1,ind,token[1:],index_of_arg,0)
+                                    code_flag+=code_flag
+                            else:
+                                
+                                fd1.write(i)
+                                code_flag+=1
+                                index_of_arg =0
+                        #print(code1)
+                else:
+                    
+                    fd1.write(code1)
+            elif(len(token)==3 and search_macro_in_mdt(token[0])):
+                ind = search_index(token[0])
+                if(len(token[1:]) == macro_definetion_table[ind].no_of_arg):
+                    index_of_arg = 0
+                    cnt=0
+                    code_flag = 0
+                    for i in macro_definetion_table[ind].code:
+                        if '%' in i:
+                            if(code_flag<len(macro_definetion_table[ind].code)):
+                                code_flag=put_expan(fd1,ind,token,index_of_arg,0)
+                                code_flag+=code_flag
+                        else:
+                            fd1.write(i)
+                            code_flag+=1
+                    
+            else:
+                fd1.write(code1)
+            token=[]
+    fd.close()
+    fd1.close()
 
-
-
-
-
-    
+'''if __name__ == "__main__":
+    pass0("macro.asm")
+   ''' 

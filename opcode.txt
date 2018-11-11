@@ -1,0 +1,18 @@
+89/r|mov|r/m32|r32
+8B/r|mov|r32|r/m32
+A1|mov|eax|moff32
+B8+rd id|mov|r32|imm32
+05 id|add|eax|imm32
+01/r|add|r/m32|r32
+03/r|add|r32|r/m32
+83/r id|add|r32|imm8
+48+rd|dec|r32
+50+rd|push|r32
+68 id|push|rel32
+E8 id|call|rel32
+CD ib|int|imm8
+
+
+
+                    
+

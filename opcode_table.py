@@ -1,4 +1,3 @@
-
 label_specifier={"jmp","jz","je","jle","jnz","loop","call"}
 directives  ={"section",".data",".bss",".text"}
 mem_specifier={"dword"}
@@ -28,9 +27,9 @@ operand_count={
     "div":2,
     "xor":2}
 
-zero_operand_opcode={"pusha":"","popa":""}#Remain 
-one_operand_opcode={"inc":"","dec":"","int":'CD'}#Remain
-two_operand_opcode={"add":"","sub":"","div":"","mov":"","mul":"","xor":""}#Remain
+#zero_operand_opcode={"pusha":"","popa":""}#Remain 
+#one_operand_opcode={"inc":"","dec":"","int":'CD'}#Remain
+#two_operand_opcode={"add":"","sub":"","div":"","mov":"","mul":"","xor":""}#Remain
 def is_operator(token):
     if token in operand_count:
         return True
@@ -78,7 +77,7 @@ register_dict = {0:['r8_0','r16_0','r32_0'],
                  7:['r8_7','r16_7','r32_7']}
 
 '''
-register_dict = {"eax":"r32_0",
+register_dict = {'eax':'r32_0',
                  'ecx':'r32_1',
                  'edx':'r32_2',
                  'ebx':'r32_3',
@@ -86,14 +85,15 @@ register_dict = {"eax":"r32_0",
                  'ebp':'r32_5',
                  'esi':'r32_6',
                  'edi':'r32_7'}
-register_code = {'0':0b000,
-            '1':0b001,
-            '2':0b010,
-            '3':0b011,
-            '4':0b100,
-            '5':0b101,
-            '6':0b110,
-            '7':0b111}
+register_code = {'0':'000',
+            '1':'001',
+            '2':'010',
+            '3':'011',
+            '4':'100',
+            '5':'101',
+            '6':'110',
+            '7':'111'}
+
 
 
 def IsRegister(token):
@@ -111,6 +111,7 @@ def find_regis_opcode(token):#find opcode of register
         return register_dict[token[-1]]
     except:
         return None
+
 
 #print(is_label_specifier("jmp"))
 #print(find_Intermiddiate("hello"))
