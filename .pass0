@@ -1,0 +1,13 @@
+	section .data
+	msg db "Addition is %d"
+  section .text
+	global main
+  extern printf
+main:
+	mov eax,10
+	mov ebx,10000
+	add eax,ebx
+	push eax
+  push msg
+  call printf
+  add esp,8

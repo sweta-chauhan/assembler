@@ -24,7 +24,7 @@ def int_to_hex(string,d_flag):
                 
         else:
             for i in string[:1]:
-                print(string)
+                #print(string)
                 l=hex(int(i)).strip('0x')
                 if(len(l)==1):
                     l='0'+l
@@ -36,6 +36,7 @@ def int_to_hex(string,d_flag):
             l=l[2:]
             str1+=l
             l=""
+        #print(str1)
     if(d_flag == 'dw'):
         string = string.split(",")
         if string[0][0]=="\"":

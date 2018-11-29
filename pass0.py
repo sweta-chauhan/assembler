@@ -85,7 +85,6 @@ def pass0(fd):
             if "%endmacro" in line:
                 endofmacro.append(i)
         code.append(line)
-
     for j in range(len(startofmacro)):
         macro_definition(code[startofmacro[j]:endofmacro[j]],count)
         count+=1
@@ -142,5 +141,6 @@ def pass0(fd):
     fd1.close()
 
 '''if __name__ == "__main__":
-    pass0("macro.asm")
-   ''' 
+    fd=open(sys.argv[1],"r")
+    pass0(fd) 
+'''

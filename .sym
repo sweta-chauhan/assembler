@@ -1,0 +1,3 @@
+1|.data|msg|1|14|True|db|S|lit#1|0
+2|.text|main|0|0|True|None|L|None|6
+3|.text|printf|0|0|False|EX|L|None|5

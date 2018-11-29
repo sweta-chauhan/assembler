@@ -1,0 +1,18 @@
+1	section .data
+2  00000000		2713	  a dd 10003
+3  00000004		186a0	  b dd 100000
+4  00000008		4164646974696f6e026973022564	  str1 db "Addition is %d"
+5	section .bss
+6  00000000		<res 00000017>	  as resb 23
+7  00000017		<res 00000002>	  as1 resb 2
+8	section .text
+9	  global main
+11	main:
+12		8B0d[0]	  mov ecx,dword[a]
+13		A1[4]	  mov eax,dword[b]
+14		01c1	  add ecx,eax
+15		89c8	  mov eax,ecx
+16		50	  push eax
+17		68[8]	  push str1
+18		E8(0)	  call printf
+19		83c48	  add esp,8
