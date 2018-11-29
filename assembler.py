@@ -12,6 +12,8 @@ import tokenizer as t
 import pass0 as p0
 import modRMcalulator as rm
 import libCall as lb
+
+
 class Traced_section():
     def __init__(self):
         self.s_name=None
@@ -645,7 +647,6 @@ def findformat(opcode,instruction):
         if instruction[0]==opcode[1]:
             if(instruction[1][0]=='r'):
                 if(instruction[1][-1]=='0'):
-                    #print(instruction)
                     if(instruction[2][:3]=='r32' and opcode[3]=='r32'):
                         return opcode[0]
                     elif(instruction[2][0:5]=='dword' and len(instruction[2][5:][1:-1].split(','))==1 and opcode[3]=="r/m32" and instruction[0]!='mov'):
@@ -659,41 +660,185 @@ def findformat(opcode,instruction):
                             return opcode[0]
                         elif(instruction[0]!='add'):
                             return opcode[0]
-                                            
                 else:
-                    
-                    if(instruction[2][:3]=='r32' and opcode[3]=='r32' and instruction[2][-1]!=0):
-                        
+                    if(instruction[2][:3]=='r32' and opcode[3]=='r32' and instruction[2][-1]!=0):   
                         return opcode[0]
                     elif(instruction[2][0:5]=='dword' and len(instruction[2][5:][1:-1].split(','))==1 and opcode[3]=="r/m32"):
                         return opcode[0]
                     elif(instruction[2][:4]=='lit#' and opcode[3]=='imm32' and opcode[2]!='eax'):
-                        #print(instruction,opcode)
                         return opcode[0]
                     elif(instruction[2][:4]=='lit#' and opcode[3]=='imm8'):
                         if(int(lt.Literal_Table[int(instruction[2][4:])-1].rl_value)<256):
-                            
                             return opcode[0]
                     
     elif(len(instruction)==2):
         if(opcode[1]==instruction[0]):
-            #print(instruction,instruction[1][:3])
             if(instruction[1][:3]=='r32' and opcode[2]=='r32'):
-                #print(instruction)
                 return opcode[0]
             elif(instruction[1][:3]=='Sym' and opcode[2]=='rel32'):
-                #print(instruction,instruction[1][:3])
                 return opcode[0]
             if(instruction[0] !='push'):
                 return opcode[0]
-
-def lst_file(filename):
+def upto_main(src_line,lines,fd):
+    line_number = 0
+    data_flag = 0
+    bss_flag = 0
+    macro_flag = 0
+    #len1=len(src_line)
+    #len2=len(lines)
+    '''print(len1,len2)
+    #print(lines)
+    #if(len2<len1):
+        for i in range(len1-len2+1):
+            lines=[""]+lines'''
+    lines = list(zip(lines,src_line))
+    for line,src_line in (lines):
+        line_number+=1
+        if "%macro" in line:
+            macro_flag =1
+        if ".text" in line:
+            break
+        if ".data" in line:
+            data_flag = 1
+            macro_flag=0
+            bss_flag = 0
+        if ".bss" in line:
+            bss_flag = 1
+            data_flag = 0
+            macro_flag=0
+        line = line.split(' ')
+        if macro_flag:
+            fd.write(src_line)
+        elif len(line)>1:
+            if line[1] in ot.data_types:
+                if(line[-1][:4]=="Sym#"):
+                    sym = st.symbol_table[int(line[-1][4:])-1]
+                    #address = "hello"
+                    address = ch.int_to_hex(str(sym.address),'dd')
+                    value = lt.Literal_Table[int((sym.value)[4:])-1].hex_value
+                    if(len(address) < 8):
+                        for i in range(8-len(address)):
+                            address='0'+address
+                    if data_flag:
+                        fd.write(str(line_number)+'  '+address+'\t\t'+value+'\t'+src_line)
+                    if bss_flag:
+                        fd.write(str(line_number)+'  '+address+'\t\t'+"<res "+value+">"+'\t'+src_line)
+            else:
+                fd.write(str(line_number)+'\t'+src_line)
+        
+def lst_file(realfilename,filename,lstfile):
     inter =open(filename,"r")
-    lst = open("p.lst","w")
+    lst = open(lstfile,"w")
+    main_file = open(realfilename,"r")
+    opcode = open("opcode.txt","r")
+    opcode_dict = []
+    ls=[]
+    flag1 = 0
+    main_flag = 0
+    line_number = 0
+    for line in opcode.readlines():
+        ls=t.opcodeReader(line)
+        if(len(ls)>2):
+            opcode_dict.append(ls)
+    lines = inter.readlines()
+    rl_lines = main_file.readlines()
+    upto_main(rl_lines,lines,lst)
+    lines = list(zip(lines,rl_lines))
+    for line,src_line in (lines):
+        line_number+=1
+        if '.text' in line:
+            flag1 = 1
+            lst.write(str(line_number)+'\t'+src_line)
+        ls=t.token(line)
+        if(flag1==1):
+            if(ls[0][-1]==':'):
+                lst.write(str(line_number)+'\t'+src_line)
+            if "main" in ls:
+                main_flag = 1
+                lst.write(str(line_number)+'\t'+src_line)
+            for o in opcode_dict:
+                if(findformat(o,ls)!=None):
+                    instruction_format=(findformat(o,ls))
+                    if(rm.isModRM(instruction_format)):
+                        if(len(ls)==4):
+                            if(ls[3][0]!='d'):
+                                lst.write(str(line_number)+'\t\t'+instruction_format[:2]+(rm.modRMcalulator(ls[2],ls[3]))[2:4]+'\t')
+                                lst.write(src_line)
+
+                            elif(ls[3][0]=='d' and len((ls[3][5:][1:-1]).split(','))==1):                           
+                                lst.write(str(line_number)+'\t\t'+instruction_format[:2]+(rm.modRMcalulator(ls[2],ls[3]))[2:4]+'['+ch.int_to_hex(str((st.symbol_table[int((ls[2][5:][1:-1])[-1])]).address),'dd')+']'+'\n')
+                                lst.write(src_line)
+                        elif(len(ls)==3):
+                            if(ls[2][0]!='d' and ls[2][0]!='l'):
+                                lst.write(str(line_number)+'\t\t'+instruction_format[:2]+(rm.modRMcalulator(ls[1],ls[2]))[2:4]+'\t')
+                                lst.write(src_line)
+                            elif(ls[2][0]=='d' and len((ls[2][5:][1:-1]).split(','))==1):
+                                lst.write(str(line_number)+'\t\t'+instruction_format[:2]+(rm.modRMcalulator(ls[1],ls[2]))[2:4]+'['+ch.int_to_hex(str((st.symbol_table[int((ls[2][5:][1:-1])[-1])-1]).address),'dd')+']'+'\t')
+                                lst.write(src_line)
+                
+                    else:
+                        if(len(ls)>2):
+                            if(ls[2][0]=='d' and len((ls[2][5:][1:-1]).split(','))==1):
+                                lst.write(str(line_number)+'\t\t'+instruction_format[:2]+'['+ch.int_to_hex(str((st.symbol_table[int((ls[2][5:][1:-1])[-1])-1]).address),'dd')+']'+'\t')
+                                lst.write(src_line)
+                            elif(ls[2][0]=='l'):
+                                instruction_format=instruction_format.split(' ')
+                                if '+' in instruction_format[0]:
+                                    if instruction_format[1]=='id':
+                                        l=instruction_format[0].split('+')
+                                        lst.write(str(line_number)+'\t\t'+(hex(int(l[0],16)+int(ot.register_code[ls[1][-1]],2))+(lt.Literal_Table[int(ls[2][-1])-1].hex_value))[2:]+'\t')
+                                        lst.write(src_line)
+                                    else:
+                                        lst.write(str(line_number)+'\t\t'+(hex(int(l[0],16)+int(ot.register_code[ls[1][-1]],2)))[2:]+'\t')
+                                        lst.write(src_line)
+                                elif(len(instruction_format)==2):
+                                    if instruction_format[1]=='id':
+                                        if(instruction_format[0][-1]=='r'):
+                                            l=instruction_format[0][0:-2]
+                                            lst.write(str(line_number)+'\t\t'+(l+rm.modRMcalulator(ls[1],ls[2])[2:]+(lt.Literal_Table[int(ls[2][-1])-1].hex_value))+'\t')
+                                            lst.write(src_line)
+                                        else:
+                                            if(ls[0]=='add'):
+                                                lst.write(str(line_number)+'\t\t'+instruction_format[0]+(lt.Literal_Table[int(ls[2][-1])-1].hex_value)+'\t')
+                                                lst.write(src_line)
+                        elif(len(ls)==2):
+                            ins=instruction_format.split(' ')
+                            if(len(ins)==2 and ins[1]=='id'):
+                                if ls[1] in lb.libCall:
+                                    lst.write(str(line_number)+'\t\t'+ins[0]+'('+str(lb.libVal[ls[1]])+')'+'\t')
+                                    lst.write(src_line)
+                                else:
+                                    lst.write(str(line_number)+'\t\t'+ins[0]+'['+str(st.symbol_table[int(ls[1][-1])-1].address)+']'+'\t')
+                                    lst.write(src_line)
+                            elif(len(ins)==2 and ins[1]=='ib'):
+                                if ls[1] in lb.libCall:
+                                    lst.write(str(line_number)+'\t\t'+ins[0]+'('+str(lb.libVal[ls[1]])+')'+'\t')
+                                    lst.write(src_line)
+                            else:
+                                ins = ins[0].split('+')
+                                lst.write(str(line_number)+'\t\t'+hex(int(ins[0],16)+int(ot.register_code[ls[1][-1]],2))[2:]+'\t')
+                                lst.write(src_line)
+                    break                    
+    inter.close()
+    lst.close()
+    main_file.close()
+    opcode.close()
+
+
+def object_file(realfilename,filename):
+    inter =open(filename,"r")
+    lst = open(filename.split('.')[0]+'.o',"w")
     opcode = open("opcode.txt","r")
     opcode_dict = []
     ls=[]
     flag = 0
+    lst.write(realfilename+'\n')
+    len1 = len(st.symbol_table)
+    lst.write(str(len1)+'\n')
+    len1 = len(lt.Literal_Table)
+    lst.write(str(len1)+'\n')
+    st.symbol_to_file(lst)
+    lt.literal_to_file(lst)
     for line in opcode.readlines():
         ls=t.opcodeReader(line)
         if(len(ls)>2):
@@ -764,25 +909,38 @@ def lst_file(filename):
                     break                    
     inter.close()
     lst.close()
-    
+    opcode.close()
+
 
 if __name__ == "__main__":
     symbol_flag = 0
     literal_flag = 0
     undefined_flag = 0
+    lst_flag=0
+    lst_fileindex = 0
     if(len(sys.argv)<2):
         print("Error: file name is not inserted !!")
     else:
         l=sys.argv[1].split('.')
         if(len(l)==2):
             if(l[1]=='asm'):
+                count=0
                 for i in sys.argv:
                     if(i=='-S'):
                         symbol_flag =1
-                    if(i=='-L'):
+                        count+=1
+                    elif(i=='-L'):
                         literal_flag =1
-                    if(i=='-U'):
+                        count+=1
+                    elif(i=='-U'):
                         undefined_flag = 1
+                        count+=1
+                    elif(i=='-l'):
+                        count+=1
+                        lst_fileindex = count
+                        lst_flag = 1
+                    else:
+                        count+=1
                 try:
                     fp = open(sys.argv[1],"r")
                     if (fp):
@@ -799,9 +957,13 @@ if __name__ == "__main__":
                     et.print_error(sys.argv[1])
                 fname=inter = (sys.argv[1]).split('.')[0]+'.i'
                 if(p1.intermiddiate(".pass0",fname)):
-                    st.symbol_to_file()
-                    lt.literal_to_file()
-                    lst_file(fname)
+                    if(lst_flag):
+                        try:
+                            lst_file(sys.argv[1],fname,sys.argv[lst_fileindex])
+                        except:
+                            print("Error: lst file name is not mentiond")
+                    object_file(sys.argv[1],fname)
+                    os.remove(fname)
                 else:
                     os.remove(".sym")
                     os.remove(".lit")
